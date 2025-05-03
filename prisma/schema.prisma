@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model HayfeverEntry {
+  id                     String   @id @default(uuid())
+  date                   DateTime
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  // Symptoms (0-4 scale: None, Mild, Moderate, Severe, Very Severe)
+  sneezing               Float
+  itchyEyes              Float
+  congestion             Float
+  headache               Float
+
+  // Medications
+  medications            String // Stored as JSON string of medication names
+  medicationEffectiveness String // not_effective, somewhat_effective, very_effective
+
+  // Activities
+  outdoorTime            Float?  // Hours spent outdoors
+  activities             String // Stored as JSON string of activity names
+  notes                  String?
+
+  // Location data
+  locationLat            Float?
+  locationLng            Float?
+  locationAddress        String?
+
+  // Weather/Pollen data (can be populated from external API)
+  pollenCount            Float?
+  pollenTypes            String? // Stored as JSON string of pollen types
+  temperature            Float?
+  humidity               Float?
+  windSpeed              Float?
+}
