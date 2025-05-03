@@ -3,7 +3,6 @@
 import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/db"
-import { parseISO, format } from 'date-fns'
 
 export async function addEntry(formData: FormData) {
   // Parse the date correctly - this was causing the 1/1/1970 issue
