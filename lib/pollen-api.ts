@@ -53,7 +53,7 @@ export async function getPollenData(
 
   try {
     const response = await fetch(
-      `/api/pollen?lat=${location.lat}&lng=${location.lng}`,
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/pollen?lat=${location.lat}&lng=${location.lng}`,
       { next: { revalidate: 3600 } } // Cache for 1 hour
     );
 
