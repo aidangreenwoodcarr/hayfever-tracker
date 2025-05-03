@@ -2,26 +2,20 @@
 
 import type { Location, PollenData } from "./pollen-api";
 
-// Get address from coordinates using Geocoding API
+// Get address from coordinates using our secure API endpoint
 async function getAddressFromCoordinates(location: Location): Promise<string> {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-  if (!apiKey) {
-    throw new Error("Google Maps API key is not configured");
-  }
-
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.lat},${location.lng}&key=${apiKey}`;
-  const response = await fetch(url);
-
+  const response = await fetch(`/api/geocode?lat=${location.lat}&lng=${location.lng}`);
+  
   if (!response.ok) {
-    throw new Error(`Geocoding API error: ${response.status} ${response.statusText}`);
+    throw new Error('Failed to get address from coordinates');
   }
 
   const data = await response.json();
-  if (data.status !== "OK" || !data.results?.[0]) {
-    throw new Error(`Geocoding API error: ${data.status}`);
+  if (data.error) {
+    throw new Error(data.error);
   }
 
-  return data.results[0].formatted_address;
+  return data.address;
 }
 
 // Get the user's current location using the browser's Geolocation API

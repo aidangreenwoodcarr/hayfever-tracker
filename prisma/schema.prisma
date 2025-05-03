@@ -7,10 +7,11 @@
 generator client {
   provider = "prisma-client-js"
   output   = "../lib/generated/prisma"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

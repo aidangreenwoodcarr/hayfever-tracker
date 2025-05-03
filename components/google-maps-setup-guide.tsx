@@ -37,7 +37,7 @@ export default function GoogleMapsSetupGuide() {
             restrictions
           </li>
           <li>
-            <strong>Add the API key</strong>: Set the NEXT_PUBLIC_GOOGLE_MAPS_API_KEY environment variable in your
+            <strong>Add the API key</strong>: Set the GOOGLE_MAPS_API_KEY environment variable in your
             Vercel project
           </li>
         </ol>
