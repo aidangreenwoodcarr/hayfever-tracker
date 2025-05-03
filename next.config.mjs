@@ -23,6 +23,11 @@ const nextConfig = {
   
   // Make sure the Prisma binary is included in the output
   output: 'standalone',
+  outputFileTracing: true,
+  experimental: {
+    // Optional: If you're using app directory
+    serverComponentsExternalPackages: ['@prisma/client', 'prisma']
+  }
 }
 
 export default nextConfig
