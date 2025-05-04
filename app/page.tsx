@@ -161,7 +161,7 @@ export default function Home() {
 
   return (
     <div className="container mx-auto py-6 space-y-8">
-      <div className="flex justify-between items-center gap-4 flex-wrap mb-2">
+      <div className="flex justify-between items-center gap-4 flex-wrap mb-2 ml-4 md:ml-0">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
             Hayfever Tracker
