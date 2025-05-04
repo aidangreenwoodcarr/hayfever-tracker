@@ -52,9 +52,9 @@ export async function getPollenData(
   }
 
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
+    // Use relative URL to avoid CORS issues
     const response = await fetch(
-      `${baseUrl}/api/pollen?lat=${location.lat}&lng=${location.lng}`,
+      `/api/pollen?lat=${location.lat}&lng=${location.lng}`,
       {
         method: 'GET',
         headers: {
