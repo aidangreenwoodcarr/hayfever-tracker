@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 interface ChartWrapperProps {
   children: React.ReactNode;
@@ -9,35 +9,35 @@ interface ChartWrapperProps {
 }
 
 /**
- * A wrapper component for charts that handles common loading, error, 
+ * A wrapper component for charts that handles common loading, error,
  * and visibility issues with chart libraries in React
  */
-export default function ChartWrapper({ 
-  children, 
+export default function ChartWrapper({
+  children,
   height = 300,
-  failMessage = "Failed to load chart. Please try again later."
-}: ChartWrapperProps) {
+  failMessage = "Failed to load chart. Please try again later.",
+}: ChartWrapperProps): React.ReactElement {
   const [mounted, setMounted] = useState(false);
   const [hasError, setHasError] = useState(false);
 
   // Error boundary functionality
   useEffect(() => {
-    const handleError = (event: ErrorEvent) => {
-      console.error('[ChartWrapper] Caught error:', event.error);
+    const handleError = (event: ErrorEvent): void => {
+      console.error("[ChartWrapper] Caught error:", event.error);
       setHasError(true);
     };
-    
-    window.addEventListener('error', handleError);
+
+    window.addEventListener("error", handleError);
     setMounted(true);
-    
-    return () => {
-      window.removeEventListener('error', handleError);
+
+    return (): void => {
+      window.removeEventListener("error", handleError);
     };
   }, []);
 
   if (hasError) {
     return (
-      <div 
+      <div
         className="flex flex-col items-center justify-center text-red-500 border border-red-200 rounded-md bg-red-50"
         style={{ height: `${height}px` }}
       >
@@ -57,7 +57,7 @@ export default function ChartWrapper({
 
   if (!mounted) {
     return (
-      <div 
+      <div
         className="flex items-center justify-center text-muted-foreground animate-pulse"
         style={{ height: `${height}px` }}
       >
@@ -67,11 +67,8 @@ export default function ChartWrapper({
   }
 
   return (
-    <div 
-      className="relative w-full" 
-      style={{ height: `${height}px` }}
-    >
+    <div className="relative w-full" style={{ height: `${height}px` }}>
       {children}
     </div>
   );
-} 
+}

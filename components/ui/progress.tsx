@@ -13,7 +13,7 @@ const Progress = React.forwardRef<
   }
 >(({ className, value, variant = "default", ...props }, ref) => {
   // Get color based on pollen value (0-100 percentage scale)
-  const getPollenColor = (percentage: number) => {
+  const getPollenColor = (percentage: number): string => {
     if (percentage < 40) return "bg-green-500"; // Low (0-2)
     if (percentage < 70) return "bg-yellow-500"; // Moderate (2-3.5)
     if (percentage < 90) return "bg-orange-500"; // High (3.5-4.5)

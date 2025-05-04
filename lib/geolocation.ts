@@ -1,16 +1,32 @@
 "use client";
 
-import type { Location, PollenData } from "./pollen-api";
+import type { Location } from "./types";
+
+interface GeocodeResponse {
+  address: string;
+  error?: string;
+}
+
+interface PollenLevel {
+  level: "Low" | "Moderate" | "High" | "Very High";
+  value: number;
+}
+
+interface PollenData {
+  value: number;
+}
 
 // Get address from coordinates using our secure API endpoint
 async function getAddressFromCoordinates(location: Location): Promise<string> {
-  const response = await fetch(`/api/geocode?lat=${location.lat}&lng=${location.lng}`);
-  
+  const response = await fetch(
+    `/api/geocode?lat=${location.lat}&lng=${location.lng}`
+  );
+
   if (!response.ok) {
-    throw new Error('Failed to get address from coordinates');
+    throw new Error("Failed to get address from coordinates");
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as GeocodeResponse;
   if (data.error) {
     throw new Error(data.error);
   }
@@ -27,23 +43,25 @@ export async function getCurrentLocation(): Promise<Location> {
     }
 
     navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const location = {
+      (position: GeolocationPosition): void => {
+        const location: Location = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
 
-        try {
-          // Get address from coordinates using Geocoding API
-          const address = await getAddressFromCoordinates(location);
-          resolve({ ...location, address });
-        } catch (error) {
-          console.error("Error getting address:", error);
-          // Still resolve with coordinates even if geocoding fails
-          resolve(location);
-        }
+        // Get address from coordinates using Geocoding API
+        void (async (): Promise<void> => {
+          try {
+            const address = await getAddressFromCoordinates(location);
+            resolve({ ...location, address });
+          } catch (error) {
+            console.error("Error getting address:", error);
+            // Still resolve with coordinates even if geocoding fails
+            resolve(location);
+          }
+        })();
       },
-      (error) => {
+      (error: GeolocationPositionError) => {
         console.error("Error getting location:", error);
         reject(error);
       }
@@ -62,10 +80,7 @@ function getPollenLevel(
 }
 
 // Client-side function to calculate overall pollen level
-export function getOverallPollenLevel(pollenData: PollenData[]): {
-  level: "Low" | "Moderate" | "High" | "Very High";
-  value: number;
-} {
+export function getOverallPollenLevel(pollenData: PollenData[]): PollenLevel {
   if (!pollenData.length) {
     return { level: "Low", value: 0 };
   }
@@ -78,4 +93,4 @@ export function getOverallPollenLevel(pollenData: PollenData[]): {
     level: getPollenLevel(average),
     value: average,
   };
-} 
+}

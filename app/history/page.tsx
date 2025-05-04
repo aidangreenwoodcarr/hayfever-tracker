@@ -1,76 +1,86 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChevronLeft } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { getAllEntries } from "@/lib/actions"
-import { Badge } from "@/components/ui/badge"
-import { format } from "date-fns"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ChevronLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ReactElement, useEffect, useState } from "react";
+import { getAllEntries } from "@/lib/actions";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
 
 type Entry = {
-  id: string
-  date: Date
-  sneezing: number
-  itchyEyes: number
-  congestion: number
-  headache: number
-  medications: string[]
-  medicationEffectiveness: string
-  activities: string[]
-  pollenCount?: number | null
-  outdoorTime?: number | null
-  notes?: string | null
-  locationAddress?: string | null
-}
+  id: string;
+  date: Date;
+  sneezing: number;
+  itchyEyes: number;
+  congestion: number;
+  headache: number;
+  medications: string[];
+  medicationEffectiveness: string;
+  activities: string[];
+  pollenCount?: number | null;
+  outdoorTime?: number | null;
+  notes?: string | null;
+  locationAddress?: string | null;
+};
 
-export default function HistoryPage() {
-  const router = useRouter()
-  const [entries, setEntries] = useState<Entry[]>([])
-  const [loading, setLoading] = useState(true)
+export default function HistoryPage(): ReactElement {
+  const router = useRouter();
+  const [entries, setEntries] = useState<Entry[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadEntries() {
+    async function loadEntries(): Promise<void> {
       try {
-        const data = await getAllEntries()
-        setEntries(data)
+        const data = await getAllEntries();
+        setEntries(data as Entry[]);
       } catch (error) {
-        console.error("Failed to load entries:", error)
+        console.error("Failed to load entries:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    
-    loadEntries()
-  }, [])
 
-  function getSeverityLabel(value: number) {
-    if (value <= 0) return "None"
-    if (value <= 1) return "Mild"
-    if (value <= 2) return "Moderate"
-    if (value <= 3) return "Severe"
-    return "Very Severe"
+    void loadEntries();
+  }, []);
+
+  function getSeverityLabel(value: number): string {
+    if (value <= 0) return "None";
+    if (value <= 1) return "Mild";
+    if (value <= 2) return "Moderate";
+    if (value <= 3) return "Severe";
+    return "Very Severe";
   }
 
-  function getSeverityColor(value: number) {
-    if (value <= 0) return "bg-green-500"
-    if (value <= 1) return "bg-green-400"
-    if (value <= 2) return "bg-yellow-500"
-    if (value <= 3) return "bg-orange-500"
-    return "bg-red-500"
+  function getSeverityColor(value: number): string {
+    if (value <= 0) return "bg-green-500";
+    if (value <= 1) return "bg-green-400";
+    if (value <= 2) return "bg-yellow-500";
+    if (value <= 3) return "bg-orange-500";
+    return "bg-red-500";
   }
 
-  function formatMedication(med: string) {
+  function formatMedication(med: string): string {
     return med
       .split("_")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ")
+      .join(" ");
   }
 
   return (
     <div className="container mx-auto py-6">
-      <Button variant="ghost" className="mb-4 gap-1" onClick={() => router.back()}>
+      <Button
+        variant="ghost"
+        className="mb-4 gap-1"
+        onClick={() => router.back()}
+      >
         <ChevronLeft className="h-4 w-4" />
         Back
       </Button>
@@ -82,33 +92,44 @@ export default function HistoryPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="py-8 text-center text-muted-foreground">Loading entries...</div>
+            <div className="py-8 text-center text-muted-foreground">
+              Loading entries...
+            </div>
           ) : entries.length === 0 ? (
-            <div className="py-8 text-center text-muted-foreground">No entries found</div>
+            <div className="py-8 text-center text-muted-foreground">
+              No entries found
+            </div>
           ) : (
             <div className="space-y-6">
               {entries.map((entry) => (
                 <div key={entry.id} className="border rounded-lg p-4 space-y-4">
                   <div className="flex flex-wrap justify-between items-start gap-2">
                     <div>
-                      <h3 className="text-lg font-medium">{format(new Date(entry.date), "MMMM dd, yyyy")}</h3>
+                      <h3 className="text-lg font-medium">
+                        {format(new Date(entry.date), "MMMM dd, yyyy")}
+                      </h3>
                       {entry.locationAddress && (
-                        <p className="text-sm text-muted-foreground">{entry.locationAddress}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {entry.locationAddress}
+                        </p>
                       )}
                     </div>
 
                     <div className="flex flex-wrap gap-2">
                       {entry.pollenCount && (
-                        <Badge variant="outline" className="flex gap-1 items-center">
+                        <Badge
+                          variant="outline"
+                          className="flex gap-1 items-center"
+                        >
                           <span
                             className={`w-2 h-2 rounded-full ${
                               entry.pollenCount > 4
                                 ? "bg-red-500"
                                 : entry.pollenCount > 3
-                                  ? "bg-orange-500"
-                                  : entry.pollenCount > 2
-                                    ? "bg-yellow-500"
-                                    : "bg-green-500"
+                                ? "bg-orange-500"
+                                : entry.pollenCount > 2
+                                ? "bg-yellow-500"
+                                : "bg-green-500"
                             }`}
                           ></span>
                           Pollen: {entry.pollenCount}/5
@@ -135,7 +156,9 @@ export default function HistoryPage() {
                           </div>
                           <div className="flex justify-between">
                             <span>Itchy Eyes</span>
-                            <Badge className={getSeverityColor(entry.itchyEyes)}>
+                            <Badge
+                              className={getSeverityColor(entry.itchyEyes)}
+                            >
                               {getSeverityLabel(entry.itchyEyes)}
                             </Badge>
                           </div>
@@ -143,7 +166,9 @@ export default function HistoryPage() {
                         <div className="space-y-1">
                           <div className="flex justify-between">
                             <span>Congestion</span>
-                            <Badge className={getSeverityColor(entry.congestion)}>
+                            <Badge
+                              className={getSeverityColor(entry.congestion)}
+                            >
                               {getSeverityLabel(entry.congestion)}
                             </Badge>
                           </div>
@@ -161,7 +186,9 @@ export default function HistoryPage() {
                       <h4 className="font-medium">Medication & Activities</h4>
                       <div className="space-y-2">
                         <div>
-                          <p className="text-sm text-muted-foreground mb-1">Medications:</p>
+                          <p className="text-sm text-muted-foreground mb-1">
+                            Medications:
+                          </p>
                           <div className="flex flex-wrap gap-1">
                             {entry.medications.length > 0 ? (
                               entry.medications.map((med) => (
@@ -170,36 +197,56 @@ export default function HistoryPage() {
                                 </Badge>
                               ))
                             ) : (
-                              <span className="text-sm text-muted-foreground">None taken</span>
+                              <span className="text-sm text-muted-foreground">
+                                None taken
+                              </span>
                             )}
                           </div>
                         </div>
-                        
+
                         <div>
-                          <p className="text-sm text-muted-foreground mb-1">Activities:</p>
+                          <p className="text-sm text-muted-foreground mb-1">
+                            Activities:
+                          </p>
                           <div className="flex flex-wrap gap-1">
                             {entry.activities.length > 0 ? (
                               entry.activities.map((activity) => (
                                 <Badge key={activity} variant="outline">
-                                  {activity.charAt(0).toUpperCase() + activity.slice(1)}
+                                  {activity.charAt(0).toUpperCase() +
+                                    activity.slice(1)}
                                 </Badge>
                               ))
                             ) : (
-                              <span className="text-sm text-muted-foreground">None recorded</span>
+                              <span className="text-sm text-muted-foreground">
+                                None recorded
+                              </span>
                             )}
                           </div>
                         </div>
-                        
+
                         {entry.medicationEffectiveness && (
                           <div>
-                            <p className="text-sm text-muted-foreground mb-1">Medication Effectiveness:</p>
-                            <Badge className={
-                              entry.medicationEffectiveness === "very_effective" ? "bg-green-500" :
-                              entry.medicationEffectiveness === "somewhat_effective" ? "bg-yellow-500" :
-                              "bg-red-500"
-                            }>
-                              {entry.medicationEffectiveness.split("_").map(word => 
-                                word.charAt(0).toUpperCase() + word.slice(1)).join(" ")}
+                            <p className="text-sm text-muted-foreground mb-1">
+                              Medication Effectiveness:
+                            </p>
+                            <Badge
+                              className={
+                                entry.medicationEffectiveness ===
+                                "very_effective"
+                                  ? "bg-green-500"
+                                  : entry.medicationEffectiveness ===
+                                    "somewhat_effective"
+                                  ? "bg-yellow-500"
+                                  : "bg-red-500"
+                              }
+                            >
+                              {entry.medicationEffectiveness
+                                .split("_")
+                                .map(
+                                  (word) =>
+                                    word.charAt(0).toUpperCase() + word.slice(1)
+                                )
+                                .join(" ")}
                             </Badge>
                           </div>
                         )}
@@ -210,7 +257,9 @@ export default function HistoryPage() {
                   {entry.notes && (
                     <div>
                       <h4 className="font-medium">Notes</h4>
-                      <p className="text-sm text-muted-foreground">{entry.notes}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {entry.notes}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -220,5 +269,5 @@ export default function HistoryPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

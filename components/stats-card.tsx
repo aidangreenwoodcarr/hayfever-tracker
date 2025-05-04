@@ -1,7 +1,13 @@
 "use client";
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 type StatItem = {
   label: string;
@@ -19,19 +25,23 @@ interface StatsCardProps {
   isEmpty?: boolean;
 }
 
-export default function StatsCard({ 
-  title, 
+export default function StatsCard({
+  title,
   description,
   items,
   isLoading = false,
   emptyMessage = "No data available",
-  isEmpty = false
-}: StatsCardProps) {
+  isEmpty = false,
+}: StatsCardProps): React.ReactElement {
   return (
     <Card className="overflow-hidden border-border/40 h-full">
       <CardHeader className="pb-2 space-y-1">
         <CardTitle className="text-lg font-medium">{title}</CardTitle>
-        {description && <CardDescription className="text-muted-foreground/80">{description}</CardDescription>}
+        {description && (
+          <CardDescription className="text-muted-foreground/80">
+            {description}
+          </CardDescription>
+        )}
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -41,16 +51,16 @@ export default function StatsCard({
           </div>
         ) : isEmpty ? (
           <div className="py-8 text-center text-muted-foreground flex flex-col items-center">
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="24" 
-              height="24" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
               className="mb-2 text-muted-foreground/60"
             >
               <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -63,12 +73,23 @@ export default function StatsCard({
         ) : (
           <div className="space-y-3 pt-1">
             {items.map((item, index) => (
-              <div key={index} className="flex justify-between items-center group hover:bg-muted/30 px-2 py-1.5 -mx-2 rounded-md transition-colors">
+              <div
+                key={index}
+                className="flex justify-between items-center group hover:bg-muted/30 px-2 py-1.5 -mx-2 rounded-md transition-colors"
+              >
                 <div className="flex items-center gap-2">
-                  {item.icon && <span className="text-muted-foreground/70">{item.icon}</span>}
+                  {item.icon && (
+                    <span className="text-muted-foreground/70">
+                      {item.icon}
+                    </span>
+                  )}
                   <span className="text-sm">{item.label}</span>
                 </div>
-                <span className={`font-medium text-sm px-2 py-0.5 rounded-full ${item.color || 'text-foreground'}`}>
+                <span
+                  className={`font-medium text-sm px-2 py-0.5 rounded-full ${
+                    item.color || "text-foreground"
+                  }`}
+                >
                   {item.value}
                 </span>
               </div>
@@ -78,4 +99,4 @@ export default function StatsCard({
       </CardContent>
     </Card>
   );
-} 
+}

@@ -1,5 +1,27 @@
-import { NextResponse } from 'next/server';
-import type { PollenData } from '@/lib/pollen-api';
+import { NextRequest, NextResponse } from "next/server";
+import type { PollenData } from "@/lib/pollen-api";
+
+interface PollenIndexInfo {
+  value: number;
+  [key: string]: unknown;
+}
+
+interface PollenTypeInfo {
+  displayName?: string;
+  code: string;
+  indexInfo: PollenIndexInfo | PollenIndexInfo[];
+  [key: string]: unknown;
+}
+
+interface PollenDailyInfo {
+  pollenTypeInfo: PollenTypeInfo[];
+  [key: string]: unknown;
+}
+
+interface PollenAPIResponse {
+  dailyInfo: PollenDailyInfo[];
+  [key: string]: unknown;
+}
 
 // Determine pollen level based on value
 function getPollenLevel(
@@ -37,14 +59,17 @@ function getMockPollenData(): PollenData[] {
   ];
 }
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const lat = searchParams.get('lat');
-  const lng = searchParams.get('lng');
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const lat = searchParams.get("lat");
+  const lng = searchParams.get("lng");
 
   if (!lat || !lng) {
     return NextResponse.json(
-      { error: 'Missing latitude or longitude' },
+      { error: "Missing latitude or longitude" },
       { status: 400 }
     );
   }
@@ -61,15 +86,20 @@ export async function GET(request: Request) {
 
     const response = await fetch(url, {
       method: "GET",
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      headers: {
+        'Accept': 'application/json',
+      },
+      cache: 'no-store',
     });
 
     if (!response.ok) {
-      console.warn(`Pollen API error: ${response.status} ${response.statusText}`);
+      console.warn(
+        `Pollen API error: ${response.status} ${response.statusText}`
+      );
       return NextResponse.json({ data: getMockPollenData() });
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as PollenAPIResponse;
 
     // Process the pollen data from Google's response
     if (data && data.dailyInfo && data.dailyInfo.length > 0) {
@@ -78,11 +108,16 @@ export async function GET(request: Request) {
 
       if (Array.isArray(dailyInfo.pollenTypeInfo)) {
         for (const type of dailyInfo.pollenTypeInfo) {
-          let indexObj = undefined;
+          let indexObj: PollenIndexInfo | undefined = undefined;
           if (Array.isArray(type.indexInfo) && type.indexInfo.length > 0) {
-            indexObj = type.indexInfo.find((info: any) => typeof info.value === "number");
-          } else if (type.indexInfo && typeof type.indexInfo === "object" && typeof type.indexInfo.value === "number") {
-            indexObj = type.indexInfo;
+            indexObj = type.indexInfo.find(
+              (info: PollenIndexInfo) => typeof info.value === "number"
+            );
+          } else if (
+            typeof type.indexInfo === "object" &&
+            typeof (type.indexInfo as PollenIndexInfo).value === "number"
+          ) {
+            indexObj = type.indexInfo as PollenIndexInfo;
           }
 
           if (indexObj && typeof indexObj.value === "number") {
@@ -104,4 +139,4 @@ export async function GET(request: Request) {
     console.error("Error fetching pollen data:", error);
     return NextResponse.json({ data: getMockPollenData() });
   }
-} 
+}

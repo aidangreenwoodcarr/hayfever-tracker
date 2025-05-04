@@ -1,5 +1,3 @@
-"use server";
-
 import { cookies } from "next/headers";
 
 // Types for pollen data
@@ -17,15 +15,17 @@ export interface Location {
 
 // Get the user's saved location from cookies
 export async function getUserLocation(): Promise<Location | null> {
-  const cookieStore = cookies();
-  const locationCookie = (await cookieStore).get("user-location");
-
-  if (!locationCookie?.value) {
-    return null;
-  }
-
   try {
-    return JSON.parse(locationCookie.value) as Location;
+    const locationCookie = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('user-location='));
+    
+    if (!locationCookie) {
+      return null;
+    }
+
+    const locationValue = locationCookie.split('=')[1];
+    return JSON.parse(decodeURIComponent(locationValue)) as Location;
   } catch (error) {
     console.error("Error parsing location cookie:", error);
     return null;
@@ -52,16 +52,29 @@ export async function getPollenData(
   }
 
   try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/pollen?lat=${location.lat}&lng=${location.lng}`,
-      { next: { revalidate: 3600 } } // Cache for 1 hour
+      `${baseUrl}/api/pollen?lat=${location.lat}&lng=${location.lng}`,
+      {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store',
+        next: { revalidate: 0 },
+      }
     );
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch pollen data: ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`Failed to fetch pollen data: ${response.statusText} - ${errorText}`);
     }
 
     const { data } = await response.json();
+    if (!data || !Array.isArray(data)) {
+      throw new Error('Invalid pollen data received');
+    }
     return data;
   } catch (error) {
     console.error("Error fetching pollen data:", error);
@@ -70,10 +83,10 @@ export async function getPollenData(
 }
 
 // Get overall pollen level
-export async function getOverallPollenLevel(pollenData: PollenData[]): Promise<{
+export function getOverallPollenLevel(pollenData: PollenData[]): {
   level: "Low" | "Moderate" | "High" | "Very High";
   value: number;
-}> {
+} {
   if (!pollenData.length) {
     return { level: "Low", value: 0 };
   }
@@ -86,30 +99,4 @@ export async function getOverallPollenLevel(pollenData: PollenData[]): Promise<{
     level: getPollenLevel(average),
     value: average,
   };
-}
-
-// Mock data for fallback or development
-function getMockPollenData(): PollenData[] {
-  return [
-    {
-      type: "Tree",
-      level: "High",
-      value: 4.2,
-    },
-    {
-      type: "Grass",
-      level: "Moderate",
-      value: 3.1,
-    },
-    {
-      type: "Weed",
-      level: "Low",
-      value: 1.5,
-    },
-    {
-      type: "Mold",
-      level: "Low",
-      value: 1.2,
-    },
-  ];
 }
