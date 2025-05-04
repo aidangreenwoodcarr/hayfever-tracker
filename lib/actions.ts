@@ -86,6 +86,7 @@ export async function addEntry(formData: FormData): Promise<EntryResponse> {
           | "somewhat_effective"
           | "very_effective",
         notes: entry.notes || undefined,
+        activities: [],
       },
     };
   } catch (error) {

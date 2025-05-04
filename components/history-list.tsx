@@ -8,7 +8,9 @@ interface HistoryListProps {
   initialEntries: SymptomEntry[];
 }
 
-export function HistoryList({ initialEntries }: HistoryListProps) {
+export function HistoryList({
+  initialEntries,
+}: HistoryListProps): React.ReactElement {
   function getSeverityLabel(value: number): string {
     if (value <= 0) return "None";
     if (value <= 1) return "Mild";
@@ -58,10 +60,7 @@ export function HistoryList({ initialEntries }: HistoryListProps) {
 
             <div className="flex flex-wrap gap-2">
               {entry.pollenCount && (
-                <Badge
-                  variant="outline"
-                  className="flex gap-1 items-center"
-                >
+                <Badge variant="outline" className="flex gap-1 items-center">
                   <span
                     className={`w-2 h-2 rounded-full ${
                       entry.pollenCount > 4
@@ -97,9 +96,7 @@ export function HistoryList({ initialEntries }: HistoryListProps) {
                   </div>
                   <div className="flex justify-between">
                     <span>Itchy Eyes</span>
-                    <Badge
-                      className={getSeverityColor(entry.itchyEyes)}
-                    >
+                    <Badge className={getSeverityColor(entry.itchyEyes)}>
                       {getSeverityLabel(entry.itchyEyes)}
                     </Badge>
                   </div>
@@ -107,9 +104,7 @@ export function HistoryList({ initialEntries }: HistoryListProps) {
                 <div className="space-y-1">
                   <div className="flex justify-between">
                     <span>Congestion</span>
-                    <Badge
-                      className={getSeverityColor(entry.congestion)}
-                    >
+                    <Badge className={getSeverityColor(entry.congestion)}>
                       {getSeverityLabel(entry.congestion)}
                     </Badge>
                   </div>
@@ -153,8 +148,7 @@ export function HistoryList({ initialEntries }: HistoryListProps) {
                     {entry.activities.length > 0 ? (
                       entry.activities.map((activity) => (
                         <Badge key={activity} variant="outline">
-                          {activity.charAt(0).toUpperCase() +
-                            activity.slice(1)}
+                          {activity.charAt(0).toUpperCase() + activity.slice(1)}
                         </Badge>
                       ))
                     ) : (
@@ -172,8 +166,7 @@ export function HistoryList({ initialEntries }: HistoryListProps) {
                     </p>
                     <Badge
                       className={
-                        entry.medicationEffectiveness ===
-                        "very_effective"
+                        entry.medicationEffectiveness === "very_effective"
                           ? "bg-green-500"
                           : entry.medicationEffectiveness ===
                             "somewhat_effective"
@@ -184,8 +177,7 @@ export function HistoryList({ initialEntries }: HistoryListProps) {
                       {entry.medicationEffectiveness
                         .split("_")
                         .map(
-                          (word) =>
-                            word.charAt(0).toUpperCase() + word.slice(1)
+                          (word) => word.charAt(0).toUpperCase() + word.slice(1)
                         )
                         .join(" ")}
                     </Badge>
@@ -198,13 +190,11 @@ export function HistoryList({ initialEntries }: HistoryListProps) {
           {entry.notes && (
             <div>
               <h4 className="font-medium">Notes</h4>
-              <p className="text-sm text-muted-foreground">
-                {entry.notes}
-              </p>
+              <p className="text-sm text-muted-foreground">{entry.notes}</p>
             </div>
           )}
         </div>
       ))}
     </div>
   );
-} 
+}

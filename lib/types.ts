@@ -18,6 +18,9 @@ export interface SymptomEntry {
     | "very_effective";
   notes?: string;
   pollenCount?: number | null;
+  locationAddress?: string | null;
+  outdoorTime?: number | null;
+  activities: string[];
 }
 
 export interface RecentStats {
