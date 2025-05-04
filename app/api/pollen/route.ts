@@ -63,6 +63,18 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
+  // Add CORS headers
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+
+  // Handle preflight requests
+  if (request.method === 'OPTIONS') {
+    return new NextResponse(null, { headers });
+  }
+
   const searchParams = request.nextUrl.searchParams;
   const lat = searchParams.get("lat");
   const lng = searchParams.get("lng");
@@ -70,7 +82,7 @@ export async function GET(request: NextRequest) {
   if (!lat || !lng) {
     return NextResponse.json(
       { error: "Missing latitude or longitude" },
-      { status: 400 }
+      { status: 400, headers }
     );
   }
 
@@ -78,7 +90,7 @@ export async function GET(request: NextRequest) {
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
       console.warn("Google Maps API key is not configured. Using mock data.");
-      return NextResponse.json({ data: getMockPollenData() });
+      return NextResponse.json({ data: getMockPollenData() }, { headers });
     }
 
     // Use the correct Pollen API endpoint
@@ -96,7 +108,7 @@ export async function GET(request: NextRequest) {
       console.warn(
         `Pollen API error: ${response.status} ${response.statusText}`
       );
-      return NextResponse.json({ data: getMockPollenData() });
+      return NextResponse.json({ data: getMockPollenData() }, { headers });
     }
 
     const data = (await response.json()) as PollenAPIResponse;
@@ -130,13 +142,13 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      return NextResponse.json({ data: pollenData });
+      return NextResponse.json({ data: pollenData }, { headers });
     }
 
     console.warn("Invalid response format from Pollen API. Using mock data.");
-    return NextResponse.json({ data: getMockPollenData() });
+    return NextResponse.json({ data: getMockPollenData() }, { headers });
   } catch (error) {
     console.error("Error fetching pollen data:", error);
-    return NextResponse.json({ data: getMockPollenData() });
+    return NextResponse.json({ data: getMockPollenData() }, { headers });
   }
 }
