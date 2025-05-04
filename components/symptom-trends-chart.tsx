@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Chart, registerables } from "chart.js";
 import { getPollenData } from "@/lib/pollen-api";
 import { getCurrentLocation } from "@/lib/geolocation";
@@ -14,44 +14,36 @@ try {
   console.error("[Chart] Error registering Chart.js:", error);
 }
 
-type Entry = {
-  id: string;
-  date: Date;
-  sneezing: number;
-  itchyEyes: number;
-  congestion: number;
-  headache: number;
-  pollenCount?: number | null;
-};
-
-export default function SymptomTrendsChart() {
+export default function SymptomTrendsChart(): React.ReactElement {
   const chartRef = useRef<HTMLCanvasElement>(null);
   const chartInstance = useRef<Chart | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // We need a slight delay to ensure the canvas is properly mounted in the DOM
-    const timer = setTimeout(() => {
-      if (!chartRef.current) {
-        console.error("[Chart] Chart canvas reference is not available");
-        setError("Chart canvas reference is not available");
-        setIsLoading(false);
-        return;
-      }
+  const createPlaceholderChart = useCallback((): void => {
+    // Create a chart with placeholder data if no real data is available
+    const today = new Date();
+    const dates = Array.from({ length: 7 }, (_, i) =>
+      format(subDays(today, 6 - i), "MMM d")
+    );
 
-      fetchDataAndCreateChart();
-    }, 500); // Increased delay to ensure DOM is fully ready
+    const sneezingData = [2, 3, 4, 3, 2, 3, 4];
+    const itchyEyesData = [1, 2, 4, 3, 2, 2, 3];
+    const congestionData = [1, 2, 3, 2, 1, 2, 3];
+    const headacheData = [0, 1, 2, 1, 0, 1, 2];
+    const pollenData = [3.2, 4.1, 4.8, 3.9, 2.7, 3.5, 4.2];
 
-    return () => {
-      clearTimeout(timer);
-      if (chartInstance.current) {
-        chartInstance.current.destroy();
-      }
-    };
+    createChart(
+      dates,
+      sneezingData,
+      itchyEyesData,
+      congestionData,
+      headacheData,
+      pollenData
+    );
   }, []);
 
-  async function fetchDataAndCreateChart() {
+  const fetchDataAndCreateChart = useCallback(async (): Promise<void> => {
     setIsLoading(true);
     setError(null);
 
@@ -134,30 +126,28 @@ export default function SymptomTrendsChart() {
       setError("Failed to fetch data. Please try again later.");
       createPlaceholderChart();
     }
-  }
+  }, [createPlaceholderChart]);
 
-  function createPlaceholderChart() {
-    // Create a chart with placeholder data if no real data is available
-    const today = new Date();
-    const dates = Array.from({ length: 7 }, (_, i) =>
-      format(subDays(today, 6 - i), "MMM d")
-    );
+  useEffect(() => {
+    // We need a slight delay to ensure the canvas is properly mounted in the DOM
+    const timer = setTimeout(() => {
+      if (!chartRef.current) {
+        console.error("[Chart] Chart canvas reference is not available");
+        setError("Chart canvas reference is not available");
+        setIsLoading(false);
+        return;
+      }
 
-    const sneezingData = [2, 3, 4, 3, 2, 3, 4];
-    const itchyEyesData = [1, 2, 4, 3, 2, 2, 3];
-    const congestionData = [1, 2, 3, 2, 1, 2, 3];
-    const headacheData = [0, 1, 2, 1, 0, 1, 2];
-    const pollenData = [3.2, 4.1, 4.8, 3.9, 2.7, 3.5, 4.2];
+      void fetchDataAndCreateChart();
+    }, 500); // Increased delay to ensure DOM is fully ready
 
-    createChart(
-      dates,
-      sneezingData,
-      itchyEyesData,
-      congestionData,
-      headacheData,
-      pollenData
-    );
-  }
+    return (): void => {
+      clearTimeout(timer);
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+    };
+  }, [fetchDataAndCreateChart]);
 
   function createChart(
     dates: string[],
@@ -166,7 +156,7 @@ export default function SymptomTrendsChart() {
     congestionData: number[],
     headacheData: number[],
     pollenData: (number | null)[]
-  ) {
+  ): void {
     // Double check canvas exists and is accessible
     if (!chartRef.current) {
       console.error(
@@ -410,7 +400,9 @@ export default function SymptomTrendsChart() {
           <p className="text-red-500 mb-2 text-center">{error}</p>
           <button
             className="px-4 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-            onClick={() => fetchDataAndCreateChart()}
+            onClick={(): void => {
+              void fetchDataAndCreateChart();
+            }}
           >
             Retry
           </button>

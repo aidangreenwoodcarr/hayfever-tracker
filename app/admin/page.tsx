@@ -1,45 +1,56 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { clearAllEntries } from "@/lib/actions"
-import { useRouter } from "next/navigation"
-import { CheckCircle, AlertTriangle, ChevronLeft } from "lucide-react"
+import { ReactElement, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { clearAllEntries } from "@/lib/actions";
+import { useRouter } from "next/navigation";
+import { CheckCircle, AlertTriangle, ChevronLeft } from "lucide-react";
+import type React from "react";
 
-export default function AdminPage() {
-  const router = useRouter()
-  const [confirmOpen, setConfirmOpen] = useState(false)
-  const [isClearing, setIsClearing] = useState(false)
+export default function AdminPage(): ReactElement {
+  const router = useRouter();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
   const [result, setResult] = useState<{
-    success?: boolean
-    count?: number
-    error?: string
-  } | null>(null)
+    success?: boolean;
+    count?: number;
+    error?: string;
+  } | null>(null);
 
-  async function handleClearDatabase() {
-    setIsClearing(true)
-    setResult(null)
+  async function handleClearDatabase(): Promise<void> {
+    setIsClearing(true);
+    setResult(null);
 
     try {
-      const result = await clearAllEntries()
-      setResult(result)
-      
+      const result = await clearAllEntries();
+      setResult(result);
+
       // Refresh the page data if successful
       if (result.success) {
-        router.refresh()
+        router.refresh();
       }
     } catch (error) {
-      setResult({ success: false, error: "Failed to clear database" })
+      setResult({ success: false, error: "Failed to clear database" });
     } finally {
-      setIsClearing(false)
-      setConfirmOpen(false)
+      setIsClearing(false);
+      setConfirmOpen(false);
     }
   }
 
   return (
     <div className="container mx-auto py-6 max-w-2xl">
-      <Button variant="ghost" className="mb-4 gap-1" onClick={() => router.push('/')}>
+      <Button
+        variant="ghost"
+        className="mb-4 gap-1"
+        onClick={() => router.push("/")}
+      >
         <ChevronLeft className="h-4 w-4" />
         Back to Home
       </Button>
@@ -52,10 +63,10 @@ export default function AdminPage() {
         <CardContent className="space-y-6">
           <div>
             <h2 className="text-lg font-medium mb-4">Database Management</h2>
-            
+
             {!confirmOpen ? (
-              <Button 
-                variant="destructive" 
+              <Button
+                variant="destructive"
                 onClick={() => setConfirmOpen(true)}
                 className="w-full sm:w-auto"
               >
@@ -66,23 +77,26 @@ export default function AdminPage() {
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5" />
                   <div>
-                    <h3 className="font-medium text-red-700 dark:text-red-400">Warning: This action cannot be undone</h3>
+                    <h3 className="font-medium text-red-700 dark:text-red-400">
+                      Warning: This action cannot be undone
+                    </h3>
                     <p className="text-sm text-red-600 dark:text-red-300">
-                      You are about to delete all entries from the database. This action cannot be reversed.
+                      You are about to delete all entries from the database.
+                      This action cannot be reversed.
                     </p>
                   </div>
                 </div>
                 <div className="flex gap-2 justify-end">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => setConfirmOpen(false)}
                     size="sm"
                   >
                     Cancel
                   </Button>
-                  <Button 
-                    variant="destructive" 
-                    onClick={handleClearDatabase}
+                  <Button
+                    variant="destructive"
+                    onClick={() => void handleClearDatabase()}
                     size="sm"
                     disabled={isClearing}
                   >
@@ -93,15 +107,20 @@ export default function AdminPage() {
             )}
 
             {result && (
-              <div className={`mt-4 p-3 rounded-lg flex items-center gap-2 ${
-                result.success 
-                  ? "bg-green-50 text-green-700 dark:bg-green-950/20 dark:text-green-300" 
-                  : "bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-300"
-              }`}>
+              <div
+                className={`mt-4 p-3 rounded-lg flex items-center gap-2 ${
+                  result.success
+                    ? "bg-green-50 text-green-700 dark:bg-green-950/20 dark:text-green-300"
+                    : "bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-300"
+                }`}
+              >
                 {result.success ? (
                   <>
                     <CheckCircle className="h-5 w-5" />
-                    <span>Successfully cleared {result.count} entries from the database</span>
+                    <span>
+                      Successfully cleared {result.count} entries from the
+                      database
+                    </span>
                   </>
                 ) : (
                   <>
@@ -115,5 +134,5 @@ export default function AdminPage() {
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}
