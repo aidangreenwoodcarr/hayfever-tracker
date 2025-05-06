@@ -59,7 +59,7 @@ export function HistoryList({
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {entry.pollenCount && (
+              {entry.pollenCount !== undefined && entry.pollenCount !== null && (
                 <Badge variant="outline" className="flex gap-1 items-center">
                   <span
                     className={`w-2 h-2 rounded-full ${

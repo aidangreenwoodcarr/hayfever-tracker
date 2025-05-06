@@ -9,7 +9,9 @@ import { getAllEntries } from "@/lib/actions";
 import { HistoryList } from "@/components/history-list";
 import { BackButton } from "@/components/back-button";
 
-export default async function HistoryPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function HistoryPage(): Promise<React.ReactElement> {
   const entries = await getAllEntries();
 
   return (
