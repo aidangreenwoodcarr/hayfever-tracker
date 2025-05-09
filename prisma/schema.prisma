@@ -17,6 +17,8 @@ model User {
   accounts      Account[]
   entries       HayfeverEntry[]
   sessions      Session[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 }
 
 model Account {
@@ -63,18 +65,21 @@ model HayfeverEntry {
   itchyEyes               Float
   congestion              Float
   headache                Float
-  medications             String
+  medications             String   // JSON string of medications
   medicationEffectiveness String
   outdoorTime             Float?
-  activities              String
+  activities              String   // JSON string of activities
   notes                   String?
   locationLat             Float?
   locationLng             Float?
   locationAddress         String?
   pollenCount             Float?
-  pollenTypes             String?
+  pollenTypes             String   // JSON string of pollen types
   temperature             Float?
   humidity                Float?
   windSpeed               Float?
   user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([date])
 }

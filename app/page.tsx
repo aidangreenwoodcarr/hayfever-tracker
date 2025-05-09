@@ -26,6 +26,7 @@ import {
 } from "@/lib/utils";
 import type { Location, EffectivenessRating } from "@/lib/types";
 import type { ReactElement } from "react";
+import { AuthInfo } from "@/components/auth-info";
 
 interface MedicationEffectiveness {
   effectiveness: EffectivenessRating;
@@ -216,6 +217,10 @@ export default function Home(): ReactElement {
             <RecentEntries />
           </CardContent>
         </Card>
+      </div>
+      
+      <div className="mt-8">
+        <AuthInfo />
       </div>
     </div>
   );

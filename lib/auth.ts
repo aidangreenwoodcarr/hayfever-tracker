@@ -15,6 +15,10 @@ declare module "next-auth" {
   }
 }
 
+// In production, use secure cookie prefixes
+// In development, use standard cookie names to avoid CSRF issues
+const useSecure = process.env.NODE_ENV === "production";
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
@@ -25,6 +29,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
     session: ({ session, token }) => {
@@ -44,5 +49,35 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: "/auth/signin",
     error: "/auth/error",
   },
+  cookies: {
+    sessionToken: {
+      name: useSecure ? `__Secure-next-auth.session-token` : `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: useSecure,
+      },
+    },
+    callbackUrl: {
+      name: useSecure ? `__Secure-next-auth.callback-url` : `next-auth.callback-url`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: useSecure,
+      },
+    },
+    csrfToken: {
+      name: useSecure ? `__Host-next-auth.csrf-token` : `next-auth.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: useSecure,
+      },
+    },
+  },
   secret: process.env.AUTH_SECRET,
+  debug: process.env.NODE_ENV === "development",
 }); 

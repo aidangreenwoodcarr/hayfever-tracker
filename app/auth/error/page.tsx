@@ -4,58 +4,47 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
 
-function ErrorContent(): React.ReactNode {
+export default function AuthErrorPage() {
   const searchParams = useSearchParams();
-  const error = searchParams.get("error");
+  const errorType = searchParams.get("error") || "Default";
   
-  let errorMessage = "An error occurred during authentication";
-  
-  if (error === "AccessDenied") {
-    errorMessage = "You don't have permission to access this resource";
-  } else if (error === "Verification") {
-    errorMessage = "The verification link has expired or has already been used";
-  } else if (error === "Configuration") {
-    errorMessage = "There is a problem with the server configuration";
-  }
+  // Map error codes to user-friendly messages
+  const errorMessages: Record<string, string> = {
+    Configuration: "There is a problem with the server configuration.",
+    AccessDenied: "You do not have permission to sign in.",
+    Verification: "The verification link may have been used or is invalid.",
+    Default: "An unexpected authentication error occurred.",
+    MissingCSRF: "The security token is missing. Please try again.",
+    JWTSessionError: "Your session has expired. Please sign in again.",
+    UnknownAction: "Invalid authentication action. Please try again using the button below.",
+  };
+
+  const errorMessage = errorMessages[errorType] || errorMessages.Default;
 
   return (
     <div className="flex h-screen items-center justify-center">
-      <Card className="w-[350px]">
+      <Card className="w-[400px]">
         <CardHeader>
           <CardTitle>Authentication Error</CardTitle>
           <CardDescription>
-            {errorMessage}
+            There was a problem signing you in
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground mb-4">
-            Please try signing in again or contact support if the problem persists.
-          </p>
+          <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded mb-4">
+            <p className="font-medium">Error: {errorType}</p>
+            <p className="mt-2">{errorMessage}</p>
+          </div>
         </CardContent>
-        <CardFooter>
-          <Button asChild className="w-full">
-            <Link href="/auth/signin">Back to Sign In</Link>
+        <CardFooter className="flex justify-center">
+          <Button asChild>
+            <Link href="/auth/signin">
+              Try Again
+            </Link>
           </Button>
         </CardFooter>
       </Card>
     </div>
-  );
-}
-
-export default function AuthErrorPage(): React.ReactNode {
-  return (
-    <Suspense fallback={
-      <div className="flex h-screen items-center justify-center">
-        <Card className="w-[350px]">
-          <CardHeader>
-            <CardTitle>Loading...</CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
-    }>
-      <ErrorContent />
-    </Suspense>
   );
 } 

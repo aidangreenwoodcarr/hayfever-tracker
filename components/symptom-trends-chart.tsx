@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Chart, registerables } from "chart.js";
 import { getPollenData } from "@/lib/pollen-api";
 import { getCurrentLocation } from "@/lib/geolocation";
-import { getAllEntries } from "@/lib/actions";
+import { getUserEntries } from "@/lib/actions";
 import { format, subDays, parseISO } from "date-fns";
 
 // Ensure Chart.js is properly registered
@@ -49,7 +49,7 @@ export default function SymptomTrendsChart(): React.ReactElement {
 
     try {
       // Get entries from database
-      const entries = await getAllEntries();
+      const entries = await getUserEntries();
 
       // Ensure dates are properly parsed - fix for 1/1/1970 issue
       const entriesWithFixedDates = entries.map((entry) => ({

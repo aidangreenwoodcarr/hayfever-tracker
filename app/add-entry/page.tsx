@@ -30,6 +30,9 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { addEntry } from "@/lib/actions";
 import { getUserLocation } from "@/lib/pollen-api";
+import { AuthCheck } from "@/components/auth-check";
+import { useSession } from "next-auth/react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function AddEntryPage(): ReactElement {
   const router = useRouter();
@@ -41,6 +44,51 @@ export default function AddEntryPage(): ReactElement {
     congestion: 0,
     headache: 0,
   });
+  
+  // Ensure the user is authenticated
+  return (
+    <AuthCheck>
+      <AddEntryForm 
+        date={date}
+        setDate={setDate}
+        symptoms={symptoms}
+        setSymptoms={setSymptoms}
+        isSubmitting={isSubmitting}
+        setIsSubmitting={setIsSubmitting}
+      />
+    </AuthCheck>
+  );
+}
+
+// Separate the form to its own component
+function AddEntryForm({
+  date,
+  setDate,
+  symptoms,
+  setSymptoms,
+  isSubmitting,
+  setIsSubmitting
+}: {
+  date: Date;
+  setDate: (date: Date) => void;
+  symptoms: {
+    sneezing: number;
+    itchyEyes: number;
+    congestion: number;
+    headache: number;
+  };
+  setSymptoms: React.Dispatch<React.SetStateAction<{
+    sneezing: number;
+    itchyEyes: number;
+    congestion: number;
+    headache: number;
+  }>>;
+  isSubmitting: boolean;
+  setIsSubmitting: React.Dispatch<React.SetStateAction<boolean>>;
+}): ReactElement {
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [result, setResult] = useState<{ success?: boolean; error?: string; message?: string } | null>(null);
 
   // Helper function to format the value
   const formatValue = (value: number): string => {
@@ -57,28 +105,58 @@ export default function AddEntryPage(): ReactElement {
   ): Promise<void> {
     event.preventDefault();
     setIsSubmitting(true);
+    setResult(null);
 
     const formData = new FormData(event.currentTarget);
 
+    // Log form data for debugging
+    console.log("Form Data Entries:");
+    for (const [key, value] of formData.entries()) {
+      console.log(`${key}: ${value}`);
+    }
+
     // Ensure the date is properly formatted for the server action
     formData.set("date", date.toISOString());
+    console.log("Date set as:", date.toISOString());
 
     // Get the user's location to associate with this entry
-    const userLocation = await getUserLocation();
-    if (userLocation) {
-      formData.append("location_lat", userLocation.lat.toString());
-      formData.append("location_lng", userLocation.lng.toString());
-      if (userLocation.address) {
-        formData.append("location_address", userLocation.address);
+    try {
+      const userLocation = await getUserLocation();
+      console.log("User location:", userLocation);
+      if (userLocation) {
+        formData.append("location_lat", userLocation.lat.toString());
+        formData.append("location_lng", userLocation.lng.toString());
+        if (userLocation.address) {
+          formData.append("location_address", userLocation.address);
+        }
       }
+    } catch (locationError) {
+      console.error("Location error:", locationError);
+      // Continue without location if it fails
     }
 
     try {
-      await addEntry(formData);
-      router.push("/");
-      router.refresh();
+      console.log("Submitting to addEntry...");
+      const response = await addEntry(formData);
+      console.log("Response from addEntry:", response);
+      
+      if (response.success) {
+        setResult({ success: true, message: "Entry added successfully!" });
+        
+        // Wait for 2 seconds to show success message before redirecting
+        setTimeout(() => {
+          router.push("/");
+          router.refresh();
+        }, 2000);
+      } else {
+        setResult({ success: false, error: response.error || "Failed to add entry" });
+      }
     } catch (error) {
-      console.error("Failed to add entry:", error);
+      console.error("Error in addEntry:", error);
+      setResult({ 
+        success: false, 
+        error: error instanceof Error ? error.message : "Unknown error occurred" 
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -95,12 +173,26 @@ export default function AddEntryPage(): ReactElement {
         Back
       </Button>
 
+      {result && (
+        <Alert className={`mb-4 ${result.success ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}>
+          <AlertTitle>{result.success ? "Success!" : "Error"}</AlertTitle>
+          <AlertDescription>
+            {result.success ? result.message : result.error}
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>Add New Entry</CardTitle>
           <CardDescription>
             Record your symptoms, medication, and activities for the day
           </CardDescription>
+          {session?.user?.name && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Logged in as {session.user.name}
+            </p>
+          )}
         </CardHeader>
         <form onSubmit={(e) => void handleSubmit(e)}>
           <CardContent className="space-y-6">
@@ -321,7 +413,7 @@ export default function AddEntryPage(): ReactElement {
                   <RadioGroup
                     id="medication-effectiveness"
                     name="medication_effectiveness"
-                    defaultValue="medium"
+                    defaultValue="n/a"
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem

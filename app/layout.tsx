@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import "@/app/globals.css";
 import { Inter } from "next/font/google";
 import Link from "next/link";
-import { ThemeProvider } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Home, BarChart2, CalendarDays, Settings, Shield } from "lucide-react";
 import type { ReactElement } from "react";
+import { Providers } from "./providers";
+import { AuthStatus } from "@/components/auth-status";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -21,12 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+        <Providers>
           <div className="flex min-h-screen">
             <div className="hidden md:flex flex-col w-16 border-r bg-background">
               <div className="flex flex-col items-center gap-4 py-4">
@@ -91,10 +87,16 @@ export default function RootLayout({
               </div>
             </div>
             <div className="flex-1 flex flex-col min-h-screen">
-              <main className="flex-1 container py-6 md:ml-16">{children}</main>
+              <header className="border-b bg-background py-3 px-6">
+                <div className="flex justify-between items-center">
+                  <h1 className="text-xl font-semibold">Hayfever Tracker</h1>
+                  <AuthStatus />
+                </div>
+              </header>
+              <main className="flex-1 container py-6 md:px-6">{children}</main>
             </div>
           </div>
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );
