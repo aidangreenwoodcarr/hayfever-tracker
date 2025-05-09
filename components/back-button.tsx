@@ -2,8 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
+import { FC } from "react";
 
-export function BackButton() {
+export const BackButton: FC = () => {
   return (
     <Button
       variant="ghost"

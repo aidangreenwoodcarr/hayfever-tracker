@@ -62,7 +62,7 @@ function getMockPollenData(): PollenData[] {
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   // Add CORS headers
   const headers = {
     'Access-Control-Allow-Origin': '*',

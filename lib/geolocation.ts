@@ -22,13 +22,10 @@ async function getAddressFromCoordinates(location: Location): Promise<string> {
     `/api/geocode?lat=${location.lat}&lng=${location.lng}`
   );
 
-  if (!response.ok) {
-    throw new Error("Failed to get address from coordinates");
-  }
-
   const data = (await response.json()) as GeocodeResponse;
-  if (data.error) {
-    throw new Error(data.error);
+  
+  if (!response.ok || data.error) {
+    throw new Error(data.error || "Failed to get address from coordinates");
   }
 
   return data.address;
@@ -57,13 +54,32 @@ export async function getCurrentLocation(): Promise<Location> {
           } catch (error) {
             console.error("Error getting address:", error);
             // Still resolve with coordinates even if geocoding fails
-            resolve(location);
+            resolve({ ...location, address: "Unknown location" });
           }
         })();
       },
       (error: GeolocationPositionError) => {
         console.error("Error getting location:", error);
-        reject(error);
+        let errorMessage = "Failed to get location";
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = "Location access denied";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "Location information unavailable";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Location request timed out";
+            break;
+        }
+        
+        reject(new Error(errorMessage));
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
       }
     );
   });

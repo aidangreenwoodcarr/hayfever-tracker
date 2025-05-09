@@ -1,67 +1,45 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+import { getToken } from "next-auth/jwt"
 
-// Simple in-memory rate limiting
-const rateLimit = new Map<string, { count: number; resetTime: number }>();
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const MAX_REQUESTS = 60; // 60 requests per minute
-
-export function middleware(request: NextRequest): NextResponse {
-  // Only apply to API routes
-  if (!request.nextUrl.pathname.startsWith("/api")) {
-    return NextResponse.next();
+export async function middleware(request: NextRequest) {
+  // Skip authentication for public endpoints
+  if (request.nextUrl.pathname.startsWith("/api/geocode") || 
+      request.nextUrl.pathname.startsWith("/api/pollen") ||
+      request.nextUrl.pathname.startsWith("/api/auth")) {
+    return NextResponse.next()
   }
 
-  const ip = request.nextUrl.searchParams.get("ip") ?? "anonymous";
-  const now = Date.now();
-  const windowStart = now - RATE_LIMIT_WINDOW;
+  const token = await getToken({ 
+    req: request, 
+    secret: process.env.AUTH_SECRET 
+  })
 
-  // Clean up old entries
-  for (const [key, value] of rateLimit.entries()) {
-    if (value.resetTime < windowStart) {
-      rateLimit.delete(key);
-    }
-  }
-
-  // Get or create rate limit entry
-  const rateLimitInfo = rateLimit.get(ip) ?? { count: 0, resetTime: now };
-
-  // Check if rate limit exceeded
-  if (rateLimitInfo.count >= MAX_REQUESTS) {
+  // If the user isn't authenticated and accessing an API route
+  if (request.nextUrl.pathname.startsWith("/api/") && !token) {
     return new NextResponse(
-      JSON.stringify({
-        error: "Too many requests",
-        message: "Please try again later",
-      }),
-      {
-        status: 429,
-        headers: {
-          "Content-Type": "application/json",
-          "Retry-After": "60",
-        },
-      }
-    );
+      JSON.stringify({ error: "Authentication required" }),
+      { status: 401, headers: { "Content-Type": "application/json" } }
+    )
   }
 
-  // Update rate limit
-  rateLimit.set(ip, {
-    count: rateLimitInfo.count + 1,
-    resetTime: now,
-  });
+  // Protect private pages (you can add more paths as needed)
+  const privatePaths = ["/profile", "/dashboard", "/add-entry"]
+  if (privatePaths.some(path => request.nextUrl.pathname.startsWith(path)) && !token) {
+    const url = new URL("/auth/signin", request.url)
+    url.searchParams.set("callbackUrl", request.url)
+    return NextResponse.redirect(url)
+  }
 
-  // Add security headers
-  const response = NextResponse.next();
-  response.headers.set("X-Frame-Options", "DENY");
-  response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set(
-    "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
-  );
-
-  return response;
+  return NextResponse.next()
 }
 
 export const config = {
-  matcher: "/api/:path*",
-};
+  matcher: [
+    "/api/:path*",
+    "/profile/:path*",
+    "/dashboard/:path*",
+    "/add-entry",
+    "/add-entry/:path*",
+  ],
+}

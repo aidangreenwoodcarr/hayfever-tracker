@@ -1,5 +1,3 @@
-import { cookies } from "next/headers";
-
 // Types for pollen data
 export interface PollenData {
   type: string;
