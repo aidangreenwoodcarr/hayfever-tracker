@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 // This is a development-only utility to reset all auth-related cookies
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
   if (process.env.NODE_ENV !== "development") {
     return NextResponse.json(
       { error: "This endpoint is only available in development" },
@@ -10,7 +10,7 @@ export async function GET() {
     );
   }
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const authCookies = [
     // Standard names (development)
     "next-auth.session-token",
@@ -22,7 +22,7 @@ export async function GET() {
     "__Secure-next-auth.callback-url",
     // Other possible cookies
     "next-auth.pkce.code_verifier",
-    "__Secure-next-auth.pkce.code_verifier"
+    "__Secure-next-auth.pkce.code_verifier",
   ];
 
   // Delete all auth cookies
@@ -36,9 +36,9 @@ export async function GET() {
     }
   }
 
-  return NextResponse.json({ 
-    success: true, 
+  return NextResponse.json({
+    success: true,
     message: "Auth cookies cleared",
-    clearedCookies: deleted 
+    clearedCookies: deleted,
   });
-} 
+}

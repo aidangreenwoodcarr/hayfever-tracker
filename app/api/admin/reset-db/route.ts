@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { resetDatabase } from "@/lib/db";
 
 // This route is for development purposes only
-export async function POST() {
+export async function POST(): Promise<NextResponse> {
   try {
     // Only allow this in development environment
     if (process.env.NODE_ENV !== "development") {
@@ -13,8 +13,11 @@ export async function POST() {
     }
 
     await resetDatabase();
-    
-    return NextResponse.json({ success: true, message: "Database reset successful" });
+
+    return NextResponse.json({
+      success: true,
+      message: "Database reset successful",
+    });
   } catch (error) {
     console.error("Error resetting database:", error);
     return NextResponse.json(
@@ -22,4 +25,4 @@ export async function POST() {
       { status: 500 }
     );
   }
-} 
+}

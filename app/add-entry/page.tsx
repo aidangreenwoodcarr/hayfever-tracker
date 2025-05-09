@@ -32,10 +32,9 @@ import { addEntry } from "@/lib/actions";
 import { getUserLocation } from "@/lib/pollen-api";
 import { AuthCheck } from "@/components/auth-check";
 import { useSession } from "next-auth/react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AddEntryPage(): ReactElement {
-  const router = useRouter();
   const [date, setDate] = useState<Date>(new Date());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [symptoms, setSymptoms] = useState({
@@ -44,11 +43,11 @@ export default function AddEntryPage(): ReactElement {
     congestion: 0,
     headache: 0,
   });
-  
+
   // Ensure the user is authenticated
   return (
     <AuthCheck>
-      <AddEntryForm 
+      <AddEntryForm
         date={date}
         setDate={setDate}
         symptoms={symptoms}
@@ -67,7 +66,7 @@ function AddEntryForm({
   symptoms,
   setSymptoms,
   isSubmitting,
-  setIsSubmitting
+  setIsSubmitting,
 }: {
   date: Date;
   setDate: (date: Date) => void;
@@ -77,18 +76,20 @@ function AddEntryForm({
     congestion: number;
     headache: number;
   };
-  setSymptoms: React.Dispatch<React.SetStateAction<{
-    sneezing: number;
-    itchyEyes: number;
-    congestion: number;
-    headache: number;
-  }>>;
+  setSymptoms: React.Dispatch<
+    React.SetStateAction<{
+      sneezing: number;
+      itchyEyes: number;
+      congestion: number;
+      headache: number;
+    }>
+  >;
   isSubmitting: boolean;
   setIsSubmitting: React.Dispatch<React.SetStateAction<boolean>>;
 }): ReactElement {
   const router = useRouter();
   const { data: session } = useSession();
-  const [result, setResult] = useState<{ success?: boolean; error?: string; message?: string } | null>(null);
+  const { toast } = useToast();
 
   // Helper function to format the value
   const formatValue = (value: number): string => {
@@ -105,24 +106,14 @@ function AddEntryForm({
   ): Promise<void> {
     event.preventDefault();
     setIsSubmitting(true);
-    setResult(null);
 
     const formData = new FormData(event.currentTarget);
 
-    // Log form data for debugging
-    console.log("Form Data Entries:");
-    for (const [key, value] of formData.entries()) {
-      console.log(`${key}: ${value}`);
-    }
-
-    // Ensure the date is properly formatted for the server action
     formData.set("date", date.toISOString());
-    console.log("Date set as:", date.toISOString());
 
     // Get the user's location to associate with this entry
     try {
       const userLocation = await getUserLocation();
-      console.log("User location:", userLocation);
       if (userLocation) {
         formData.append("location_lat", userLocation.lat.toString());
         formData.append("location_lng", userLocation.lng.toString());
@@ -136,26 +127,35 @@ function AddEntryForm({
     }
 
     try {
-      console.log("Submitting to addEntry...");
       const response = await addEntry(formData);
-      console.log("Response from addEntry:", response);
-      
+
       if (response.success) {
-        setResult({ success: true, message: "Entry added successfully!" });
-        
-        // Wait for 2 seconds to show success message before redirecting
+        toast({
+          title: "Success!",
+          description: "Entry added successfully!",
+          variant: "default",
+          className: "bg-green-700 border-green-800 text-white",
+        });
+
+        // Wait for 0.5 seconds to show success message before redirecting
         setTimeout(() => {
           router.push("/");
           router.refresh();
-        }, 2000);
+        }, 500);
       } else {
-        setResult({ success: false, error: response.error || "Failed to add entry" });
+        toast({
+          title: "Error",
+          description: response.error || "Failed to add entry",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error in addEntry:", error);
-      setResult({ 
-        success: false, 
-        error: error instanceof Error ? error.message : "Unknown error occurred" 
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -172,15 +172,6 @@ function AddEntryForm({
         <ChevronLeft className="h-4 w-4" />
         Back
       </Button>
-
-      {result && (
-        <Alert className={`mb-4 ${result.success ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}>
-          <AlertTitle>{result.success ? "Success!" : "Error"}</AlertTitle>
-          <AlertDescription>
-            {result.success ? result.message : result.error}
-          </AlertDescription>
-        </Alert>
-      )}
 
       <Card>
         <CardHeader>
