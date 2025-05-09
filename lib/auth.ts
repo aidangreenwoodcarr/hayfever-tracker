@@ -11,7 +11,7 @@ declare module "next-auth" {
       name?: string | null;
       email?: string | null;
       image?: string | null;
-    }
+    };
   }
 }
 
@@ -51,7 +51,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   cookies: {
     sessionToken: {
-      name: useSecure ? `__Secure-next-auth.session-token` : `next-auth.session-token`,
+      name: useSecure
+        ? `__Secure-next-auth.session-token`
+        : `next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: "lax",
@@ -60,7 +62,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     },
     callbackUrl: {
-      name: useSecure ? `__Secure-next-auth.callback-url` : `next-auth.callback-url`,
+      name: useSecure
+        ? `__Secure-next-auth.callback-url`
+        : `next-auth.callback-url`,
       options: {
         httpOnly: true,
         sameSite: "lax",
@@ -80,4 +84,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   secret: process.env.AUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
-}); 
+});

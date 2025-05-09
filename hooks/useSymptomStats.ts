@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import { getRecentEntries } from "@/lib/actions";
 import type { RecentStats, SymptomEntry } from "@/lib/types";
 
-export function useSymptomStats(days: number = 7) {
+export function useSymptomStats(days: number = 7): {
+  stats: RecentStats;
+  loading: boolean;
+  error: Error | null;
+} {
   const [stats, setStats] = useState<RecentStats>({
     sneezing: 0,
     itchyEyes: 0,
@@ -15,7 +19,7 @@ export function useSymptomStats(days: number = 7) {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    async function fetchStats() {
+    async function fetchStats(): Promise<void> {
       try {
         const entries = await getRecentEntries(days);
 
@@ -35,7 +39,7 @@ export function useSymptomStats(days: number = 7) {
       }
     }
 
-    fetchStats();
+    void fetchStats();
   }, [days]);
 
   return { stats, loading, error };

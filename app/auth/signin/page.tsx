@@ -1,22 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { signIn } from "next-auth/react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { ReactElement } from "react";
 
-export default function SignInPage() {
+export default function SignInPage(): ReactElement {
   const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
-  const router = useRouter();
-  
+
   // Get the callback URL and error from searchParams
   const callbackUrl = searchParams.get("callbackUrl") || "/";
   const error = searchParams.get("error");
-  
-  const handleSignIn = async () => {
+
+  const handleSignIn = async (): Promise<void> => {
     setIsLoading(true);
     try {
       await signIn("google", { callbackUrl });
@@ -26,7 +33,7 @@ export default function SignInPage() {
       setIsLoading(false);
     }
   };
-  
+
   return (
     <div className="flex h-screen items-center justify-center">
       <Card className="w-[350px]">
@@ -39,18 +46,21 @@ export default function SignInPage() {
         <CardContent>
           <div className="space-y-4">
             {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+              <div
+                className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+                role="alert"
+              >
                 <span className="block sm:inline">
-                  {error === "MissingCSRF" 
-                    ? "Authentication error. Please try again." 
+                  {error === "MissingCSRF"
+                    ? "Authentication error. Please try again."
                     : `Error: ${error}`}
                 </span>
               </div>
             )}
-            
-            <Button 
-              className="w-full" 
-              onClick={handleSignIn}
+
+            <Button
+              className="w-full"
+              onClick={() => void handleSignIn()}
               disabled={isLoading}
             >
               {isLoading ? (
@@ -58,7 +68,9 @@ export default function SignInPage() {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Connecting...
                 </>
-              ) : "Sign in with Google"}
+              ) : (
+                "Sign in with Google"
+              )}
             </Button>
           </div>
         </CardContent>
@@ -68,4 +80,4 @@ export default function SignInPage() {
       </Card>
     </div>
   );
-} 
+}

@@ -51,13 +51,13 @@ export default function PollenForecast(): React.ReactElement {
         // Get current location and pollen data
         const currentLocation = await getCurrentLocation();
         const data = await getPollenData(currentLocation);
-        
+
         if (!isMounted) return;
-        
+
         if (!data || !Array.isArray(data)) {
           throw new Error("Invalid pollen data received");
         }
-        
+
         setPollenData(data);
         setLastUpdated(new Date());
 
@@ -71,7 +71,7 @@ export default function PollenForecast(): React.ReactElement {
         }
       } catch (error) {
         if (!isMounted) return;
-        
+
         console.error("Failed to fetch pollen data:", error);
         setError("Unable to fetch pollen data. Using sample data instead.");
         setUsingMockData(true);
@@ -85,7 +85,7 @@ export default function PollenForecast(): React.ReactElement {
 
     void fetchData();
 
-    return () => {
+    return (): void => {
       isMounted = false;
     };
   }, []);
@@ -99,12 +99,17 @@ export default function PollenForecast(): React.ReactElement {
         <div className="animate-pulse space-y-4">
           <div className="h-4 bg-muted rounded w-1/4"></div>
           <div className="h-2 bg-muted rounded"></div>
-          {[1, 2, 3, 4].map((i): React.ReactNode => (
-            <div key={i} className="space-y-2 p-3 rounded-lg border bg-muted/20">
-              <div className="h-4 bg-muted rounded w-1/3"></div>
-              <div className="h-2 bg-muted rounded"></div>
-            </div>
-          ))}
+          {[1, 2, 3, 4].map(
+            (i): React.ReactNode => (
+              <div
+                key={i}
+                className="space-y-2 p-3 rounded-lg border bg-muted/20"
+              >
+                <div className="h-4 bg-muted rounded w-1/3"></div>
+                <div className="h-2 bg-muted rounded"></div>
+              </div>
+            )
+          )}
         </div>
       </div>
     );

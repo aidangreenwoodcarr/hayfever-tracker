@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, User } from "lucide-react";
 
-export function AuthStatus() {
+export function AuthStatus(): React.ReactElement | null {
   const { data: session, status } = useSession();
   const [mounted, setMounted] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -50,7 +50,7 @@ export function AuthStatus() {
     );
   }
 
-  const handleSignOut = async () => {
+  const handleSignOut = async (): Promise<void> => {
     setIsLoggingOut(true);
     try {
       await signOut({ callbackUrl: "/" });
@@ -66,7 +66,10 @@ export function AuthStatus() {
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
             {session?.user?.image ? (
-              <AvatarImage src={session.user.image} alt={session.user.name || "User"} />
+              <AvatarImage
+                src={session.user.image}
+                alt={session.user.name || "User"}
+              />
             ) : (
               <AvatarFallback>
                 <User className="h-4 w-4" />
@@ -89,7 +92,7 @@ export function AuthStatus() {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="text-red-600 cursor-pointer"
-          onClick={handleSignOut}
+          onClick={() => void handleSignOut()}
           disabled={isLoggingOut}
         >
           <LogOut className="mr-2 h-4 w-4" />
@@ -98,4 +101,4 @@ export function AuthStatus() {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-} 
+}
